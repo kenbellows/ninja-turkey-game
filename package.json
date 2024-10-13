@@ -1,0 +1,20 @@
+{
+  "name": "ninja-turkey-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "serve & tsc --watch",
+    "serve": "serve",
+    "watch": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}

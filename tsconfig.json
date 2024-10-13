@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "outDir": "build",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "target": "ESNext",
+    "sourceMap": true
+  },
+  "include": ["src"]
+}
