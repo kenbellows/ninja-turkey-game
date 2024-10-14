@@ -1,14 +1,15 @@
 import { drawRect } from '../draw.js'
 import { Number2D } from '../math.js'
-import { SpriteSheet } from './SpriteSheet.js'
+import { SpriteSheet, SpriteState } from './SpriteSheet.js'
 
 export type SpriteConfig = {
   bounceFactor?: number
   color?: string
+  facing?: 'left' | 'right'
   floorPadding?: number
   position: Number2D
   size: Number2D
-  spriteSheet: SpriteSheet
+  spriteSheet?: SpriteSheet
   velocity?: Number2D
 }
 
@@ -17,11 +18,19 @@ const FRICTION = 0
 export class Sprite {
   public bounceFactor: number
   public color: string
+  public facing: 'right' | 'left'
   public floorPadding?: number
   public position: Number2D
   public size: Number2D
-  public spriteSheet: SpriteSheet
+  public spriteSheet?: SpriteSheet
   public velocity: Number2D
+
+  get spriteState() {
+    return this.spriteSheet.currentState
+  }
+  set spriteState(state: SpriteState) {
+    this.spriteSheet.setState(state)
+  }
 
   ignoreBoundaries = {
     ceiling: true,
@@ -33,6 +42,7 @@ export class Sprite {
   constructor({
     bounceFactor = 0.5,
     color = 'black',
+    facing = 'right',
     floorPadding,
     position,
     size,
@@ -41,6 +51,7 @@ export class Sprite {
   }: SpriteConfig) {
     this.bounceFactor = bounceFactor
     this.color = color
+    this.facing = facing
     this.floorPadding = floorPadding
     this.position = position
     this.size = size
@@ -48,8 +59,30 @@ export class Sprite {
     this.velocity = velocity
   }
 
-  draw(ctx) {
-    drawRect(ctx, this)
+  getFloor() {
+    return (this.floorPadding ?? 0) - this.size.y
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    if (!this.spriteSheet) {
+      drawRect(ctx, this)
+    }
+    this.drawSprite(ctx)
+  }
+
+  drawSprite(ctx: CanvasRenderingContext2D) {
+    const frame = this.spriteSheet.getFrame()
+    ctx.drawImage(
+      this.spriteSheet.sheet,
+      frame.x,
+      frame.y,
+      frame.width,
+      frame.height,
+      this.position.x - (frame.height - this.spriteSheet.characterHeight),
+      this.position.y,
+      this.size.x * (this.facing === 'left' ? -1 : 1),
+      this.size.y
+    )
   }
 
   update(ctx: CanvasRenderingContext2D) {
@@ -68,7 +101,7 @@ export class Sprite {
       this.handleBoundary('x', leftWall, -1)
     }
 
-    const floor = ctx.canvas.height - (this.floorPadding ?? 0) - this.size.y
+    const floor = ctx.canvas.height - this.getFloor()
     if (!this.ignoreBoundaries.floor) {
       this.handleBoundary('y', floor, 1, true)
     }

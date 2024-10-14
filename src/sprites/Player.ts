@@ -1,9 +1,9 @@
 import { drawCircle, drawRect } from '../draw.js'
 import { makeRect, Rect, rectsIntersect } from '../math.js'
 import { Sprite, SpriteConfig } from './Sprite.js'
+import { SpriteState } from './SpriteSheet.js'
 
 type PlayerConfig = SpriteConfig & {
-  facing: 'left' | 'right'
   hops?: number
   keys: Keys
   name: string
@@ -20,7 +20,6 @@ export type Keys = {
 }
 
 export class Player extends Sprite {
-  public facing: 'right' | 'left'
   public hops: number
   public keys: Keys
   public speed: number
@@ -33,7 +32,6 @@ export class Player extends Sprite {
   public dead = false
 
   constructor({
-    facing,
     hops = 10,
     keys,
     name,
@@ -43,7 +41,6 @@ export class Player extends Sprite {
   }: PlayerConfig) {
     super(spriteConfig)
 
-    this.facing = facing
     this.hops = hops
     this.keys = keys
     this.name = name
@@ -105,8 +102,28 @@ export class Player extends Sprite {
 
   update(ctx: CanvasRenderingContext2D) {
     super.update(ctx)
+    const floor = this.getFloor()
+    if (
+      this.spriteState === SpriteState.JUMP &&
+      this.position.y === floor &&
+      this.health > 0
+    ) {
+      if (this.velocity.x !== 0) {
+        this.spriteState = SpriteState.WALK
+      } else {
+        this.spriteState = SpriteState.IDLE
+      }
+    }
     if (this.attackingCountdown > 0) {
       this.attackingCountdown -= 1
+      if (this.attackingCountdown === 0) {
+        this.spriteState =
+          this.position.y > floor
+            ? SpriteState.JUMP
+            : this.velocity.x != 0
+            ? SpriteState.WALK
+            : SpriteState.IDLE
+      }
     }
     if (this.hitCountdown > 0) {
       this.hitCountdown -= 1
@@ -115,6 +132,9 @@ export class Player extends Sprite {
 
   walk(sign: 1 | -1 = 1) {
     this.velocity.x = this.speed * sign
+    if (this.spriteState !== SpriteState.JUMP) {
+      this.spriteState = SpriteState.WALK
+    }
   }
 
   jump(ctx: CanvasRenderingContext2D) {

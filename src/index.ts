@@ -1,8 +1,10 @@
+import { LINK } from './spriteSheets.js'
 import { HUD } from './HUD.js'
 import { Scene } from './Scene.js'
 import { Bomb } from './sprites/Bomb.js'
 import { Player } from './sprites/Player.js'
 import { Sprite } from './sprites/Sprite.js'
+import { SpriteSheet } from './sprites/SpriteSheet.js'
 
 const canvas = document.querySelector('canvas')
 if (!canvas) {
@@ -45,6 +47,7 @@ const player1 = new Player({
   size: {
     ...PLAYER_SIZE
   },
+  spriteSheet: LINK,
   velocity: {
     x: 0,
     y: 0
@@ -71,6 +74,7 @@ const player2 = new Player({
   size: {
     ...PLAYER_SIZE
   },
+  spriteSheet: LINK,
   velocity: {
     x: 0,
     y: 0
