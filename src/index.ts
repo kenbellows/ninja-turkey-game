@@ -1,4 +1,5 @@
 import { HUD } from './HUD.js'
+import { Scene } from './Scene.js'
 import { Bomb } from './sprites/Bomb.js'
 import { Player } from './sprites/Player.js'
 import { Sprite } from './sprites/Sprite.js'
@@ -14,25 +15,20 @@ const ctx = canvas.getContext('2d')
 if (!ctx) {
   throw new Error('Could not get CanvasRenderingContext2D')
 }
-function clear() {
-  ctx.save()
-  ctx.fillStyle = 'black'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.restore()
-}
 
 const PLAYER_SIZE = {
   x: 50,
   y: 100
 }
 
+const floorPadding = 30
+
 const players = []
 
 const player1 = new Player({
-  name: 'player1',
   color: 'red',
   facing: 'right',
-  players,
+  floorPadding,
   keys: {
     attack: ' ',
     jump: 'w',
@@ -40,6 +36,8 @@ const player1 = new Player({
     left: 'a',
     right: 'd'
   },
+  name: 'player1',
+  players,
   position: {
     x: canvas.width * 0.25 + 10,
     y: 0
@@ -54,10 +52,9 @@ const player1 = new Player({
 })
 
 const player2 = new Player({
-  name: 'player2',
   color: 'green',
   facing: 'left',
-  players,
+  floorPadding,
   keys: {
     attack: '/',
     jump: 'arrowup',
@@ -65,6 +62,8 @@ const player2 = new Player({
     left: 'arrowleft',
     right: 'arrowright'
   },
+  name: 'player2',
+  players,
   position: {
     x: (canvas.width - PLAYER_SIZE.x) * 0.75 - 10,
     y: 0
@@ -82,9 +81,15 @@ players.push(player1, player2)
 
 const sprites: Sprite[] = [player1, player2]
 const hud = new HUD({ players })
+const scene = new Scene({
+  backgroundImg: './assets/pixel-art-illustration-supermarket-background.png'
+})
 function animate() {
   window.requestAnimationFrame(animate)
-  clear()
+  scene.draw(ctx)
+  if (!scene.loaded) {
+    return
+  }
   for (const sprite of sprites) {
     sprite.update(ctx)
   }

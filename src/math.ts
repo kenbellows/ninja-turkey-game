@@ -32,3 +32,22 @@ export function pointIsInRect(point: Number2D, rect: Rect): boolean {
     point.y < rect.y2
   )
 }
+
+export function cover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement
+): Number2D {
+  const widthRatio = ctx.canvas.width / img.width
+  if (img.height * widthRatio >= ctx.canvas.height) {
+    return {
+      x: ctx.canvas.width,
+      y: img.height * widthRatio
+    }
+  } else {
+    const heightRatio = ctx.canvas.height / img.height
+    return {
+      x: img.height * heightRatio,
+      y: ctx.canvas.height
+    }
+  }
+}
