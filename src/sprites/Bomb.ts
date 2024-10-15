@@ -31,8 +31,8 @@ export class Bomb extends Sprite {
     if (
       !this.exploded &&
       this.velocity.y !== 0 &&
-      (this.position.y >= ctx.canvas.height - this.size.y ||
-        this.position.x >= ctx.canvas.width - this.size.x ||
+      (this.position.y >= ctx.canvas.height - this.size.height ||
+        this.position.x >= ctx.canvas.width - this.size.width ||
         this.position.x <= 0)
     ) {
       for (const sprite of this.sprites) {

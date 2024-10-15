@@ -1,10 +1,10 @@
-import { LINK } from './spriteSheets.js'
 import { HUD } from './HUD.js'
 import { Scene } from './Scene.js'
 import { Bomb } from './sprites/Bomb.js'
 import { Player } from './sprites/Player.js'
 import { Sprite } from './sprites/Sprite.js'
 import { SpriteSheet } from './sprites/SpriteSheet.js'
+import { LINK } from './spriteSheetConfigs.js'
 
 const canvas = document.querySelector('canvas')
 if (!canvas) {
@@ -19,16 +19,18 @@ if (!ctx) {
 }
 
 const PLAYER_SIZE = {
-  x: 50,
-  y: 100
+  height: 175,
+  width: 100
 }
 
-const floorPadding = 30
+const floorPadding = 20
 
 const players = []
 
 const player1 = new Player({
+  bounceFactor: 0,
   color: 'red',
+  ctx,
   facing: 'right',
   floorPadding,
   keys: {
@@ -47,7 +49,7 @@ const player1 = new Player({
   size: {
     ...PLAYER_SIZE
   },
-  spriteSheet: LINK,
+  spriteSheet: new SpriteSheet(LINK),
   velocity: {
     x: 0,
     y: 0
@@ -55,7 +57,9 @@ const player1 = new Player({
 })
 
 const player2 = new Player({
+  bounceFactor: 0,
   color: 'green',
+  ctx,
   facing: 'left',
   floorPadding,
   keys: {
@@ -68,13 +72,13 @@ const player2 = new Player({
   name: 'player2',
   players,
   position: {
-    x: (canvas.width - PLAYER_SIZE.x) * 0.75 - 10,
+    x: (canvas.width - PLAYER_SIZE.width) * 0.75 - 10,
     y: 0
   },
   size: {
     ...PLAYER_SIZE
   },
-  spriteSheet: LINK,
+  spriteSheet: new SpriteSheet(LINK),
   velocity: {
     x: 0,
     y: 0
@@ -106,8 +110,8 @@ window.addEventListener('keydown', (e) => {
     return
   }
   const key = e.key.toLowerCase()
-  player1.handleKeydown(key, ctx)
-  player2.handleKeydown(key, ctx)
+  player1.handleKeydown(key)
+  player2.handleKeydown(key)
   handlePlatformKeydown(key, ctx)
 })
 window.addEventListener('keyup', (e) => {
@@ -120,12 +124,13 @@ function handlePlatformKeydown(key: string, ctx: CanvasRenderingContext2D) {
   if (key === 'b') {
     sprites.push(
       new Bomb({
+        ctx,
         power: 1000,
         sprites: [...sprites],
         color: 'silver',
         size: {
-          x: 25,
-          y: 25
+          height: 25,
+          width: 25
         },
         position: {
           x: (Math.random() * canvas.width * 3) / 4 + canvas.width / 8,

@@ -1,27 +1,30 @@
-import { Number2D } from './math.js'
+import { Number2D, Size } from './math.js'
 
-type Drawable = { color: string; position: Number2D; size: Number2D }
+type Drawable = { color: string; position: Number2D; size: Size }
 
-/**
- * @this {import("./Sprite").Sprite}
- * @param {CanvasRenderingContext2D} ctx
- */
-export function drawRect(ctx, { color, position, size }: Drawable) {
+export function drawRect(
+  ctx: CanvasRenderingContext2D,
+  { color, position, size }: Drawable
+) {
   ctx.save()
   ctx.fillStyle = color
-  ctx.fillRect(position.x, position.y, size.x, size.y)
+  ctx.fillRect(position.x, position.y, size.width, size.height)
   ctx.restore()
 }
 
-/**
- * @this {import("./Sprite").Sprite}
- * @param {CanvasRenderingContext2D} ctx
- */
-export function drawCircle(ctx, { color, position, size }: Drawable) {
+export function drawCircle(
+  ctx: CanvasRenderingContext2D,
+  { color, position, size }: Drawable
+) {
   ctx.save()
   ctx.fillStyle = color
-  const radius = Math.min(size.x, size.y)
-  fillCircle(ctx, position.x + size.x / 2, position.y + size.y / 2, radius)
+  const radius = Math.min(size.width, size.height)
+  fillCircle(
+    ctx,
+    position.x + size.width / 2,
+    position.y + size.height / 2,
+    radius
+  )
   ctx.restore()
 }
 /**

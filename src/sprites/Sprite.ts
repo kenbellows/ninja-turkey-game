@@ -1,14 +1,15 @@
 import { drawRect } from '../draw.js'
-import { Number2D } from '../math.js'
+import { Number2D, Size } from '../math.js'
 import { SpriteSheet, SpriteState } from './SpriteSheet.js'
 
 export type SpriteConfig = {
+  ctx: CanvasRenderingContext2D
   bounceFactor?: number
   color?: string
   facing?: 'left' | 'right'
   floorPadding?: number
   position: Number2D
-  size: Number2D
+  size: Size
   spriteSheet?: SpriteSheet
   velocity?: Number2D
 }
@@ -18,10 +19,11 @@ const FRICTION = 0
 export class Sprite {
   public bounceFactor: number
   public color: string
+  public ctx: CanvasRenderingContext2D
   public facing: 'right' | 'left'
   public floorPadding?: number
   public position: Number2D
-  public size: Number2D
+  public size: Size
   public spriteSheet?: SpriteSheet
   public velocity: Number2D
 
@@ -42,6 +44,7 @@ export class Sprite {
   constructor({
     bounceFactor = 0.5,
     color = 'black',
+    ctx,
     facing = 'right',
     floorPadding,
     position,
@@ -51,6 +54,7 @@ export class Sprite {
   }: SpriteConfig) {
     this.bounceFactor = bounceFactor
     this.color = color
+    this.ctx = ctx
     this.facing = facing
     this.floorPadding = floorPadding
     this.position = position
@@ -60,7 +64,7 @@ export class Sprite {
   }
 
   getFloor() {
-    return (this.floorPadding ?? 0) - this.size.y
+    return (this.floorPadding ?? 0) + this.size.height
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -72,17 +76,29 @@ export class Sprite {
 
   drawSprite(ctx: CanvasRenderingContext2D) {
     const frame = this.spriteSheet.getFrame()
+    const frameAspectRatio = frame.width / frame.height
+
+    const yPos =
+      this.position.y - (frame.height - this.spriteSheet.characterHeight)
+    ctx.save()
+    if (this.facing === 'left') {
+      ctx.translate(this.position.x + this.size.width, yPos)
+      ctx.scale(-1, 1)
+    } else {
+      ctx.translate(this.position.x, yPos)
+    }
     ctx.drawImage(
       this.spriteSheet.sheet,
       frame.x,
       frame.y,
       frame.width,
       frame.height,
-      this.position.x - (frame.height - this.spriteSheet.characterHeight),
-      this.position.y,
-      this.size.x * (this.facing === 'left' ? -1 : 1),
-      this.size.y
+      0,
+      0,
+      this.size.height * frameAspectRatio,
+      this.size.height
     )
+    ctx.restore()
   }
 
   update(ctx: CanvasRenderingContext2D) {
@@ -92,7 +108,7 @@ export class Sprite {
     this.position.y += this.velocity.y
 
     if (!this.ignoreBoundaries.right) {
-      const rightWall = ctx.canvas.width - this.size.x
+      const rightWall = ctx.canvas.width - this.size.width
       this.handleBoundary('x', rightWall)
     }
 
@@ -102,6 +118,7 @@ export class Sprite {
     }
 
     const floor = ctx.canvas.height - this.getFloor()
+
     if (!this.ignoreBoundaries.floor) {
       this.handleBoundary('y', floor, 1, true)
     }
@@ -123,7 +140,14 @@ export class Sprite {
           this.velocity.x = 0
         }
       }
+      if (this.spriteState === SpriteState.JUMP) {
+        this.landOnFloor()
+      }
     }
+  }
+
+  landOnFloor() {
+    // no op -- override in subclasses
   }
 
   handleBoundary(

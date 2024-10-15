@@ -1,5 +1,4 @@
-import { drawCircle, drawRect } from '../draw.js'
-import { makeRect, Rect, rectsIntersect } from '../math.js'
+import { closeTo, makeRect, Rect, rectsIntersect } from '../math.js'
 import { Sprite, SpriteConfig } from './Sprite.js'
 import { SpriteState } from './SpriteSheet.js'
 
@@ -23,13 +22,17 @@ export class Player extends Sprite {
   public hops: number
   public keys: Keys
   public speed: number
-  public health: number
   public name: string
-  public attackingCountdown: number
-  public hitCountdown: number
-
   public players: Player[]
-  public dead = false
+
+  public health: number
+  public dead: boolean = false
+
+  private ducking: boolean = false
+  private attackingCountdown: number
+  private hitCountdown: number
+  private keysPressed: { [key: string]: boolean } = {}
+  private keyStack: string[] = []
 
   constructor({
     hops = 10,
@@ -53,59 +56,12 @@ export class Player extends Sprite {
     this.hitCountdown = 0
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
-    drawRect(ctx, this)
-
-    drawCircle(ctx, {
-      color: 'white',
-      position: {
-        x:
-          this.position.x +
-          (this.facing === 'right' ? 0.75 : 0.25) * this.size.x,
-        y: this.position.y + this.size.y * 0.2
-      },
-      size: {
-        x: this.size.x * 0.1,
-        y: this.size.x * 0.1
-      }
-    })
-    drawCircle(ctx, {
-      color: 'black',
-      position: {
-        x:
-          this.position.x +
-          (this.facing === 'right' ? 0.75 : 0.25) * this.size.x +
-          (this.facing === 'right' ? this.size.x * 0.05 : 0),
-        y: this.position.y + this.size.y * 0.2 + this.size.x * 0.025
-      },
-      size: {
-        x: this.size.x * 0.05,
-        y: this.size.x * 0.05
-      }
-    })
-
-    if (this.attackingCountdown > 0) {
-      const attackRect = this.getAttackRect()
-      drawRect(ctx, {
-        color: this.color,
-        position: {
-          x: attackRect.x1,
-          y: attackRect.y1
-        },
-        size: {
-          x: attackRect.x2 - attackRect.x1,
-          y: attackRect.y2 - attackRect.y1
-        }
-      })
-    }
-  }
-
   update(ctx: CanvasRenderingContext2D) {
     super.update(ctx)
     const floor = this.getFloor()
     if (
       this.spriteState === SpriteState.JUMP &&
-      this.position.y === floor &&
+      closeTo(this.position.y, floor) &&
       this.health > 0
     ) {
       if (this.velocity.x !== 0) {
@@ -130,27 +86,48 @@ export class Player extends Sprite {
     }
   }
 
+  duck() {
+    this.ducking = true
+    this.spriteState = SpriteState.DUCK
+    this.velocity.x = 0
+  }
+
+  unduck() {
+    this.ducking = false
+    this.spriteState = SpriteState.DUCK
+  }
+
   walk(sign: 1 | -1 = 1) {
     this.velocity.x = this.speed * sign
-    if (this.spriteState !== SpriteState.JUMP) {
+    if (this.position.y === this.ctx.canvas.height - this.getFloor()) {
       this.spriteState = SpriteState.WALK
     }
   }
 
-  jump(ctx: CanvasRenderingContext2D) {
-    const floor = ctx.canvas.height - this.size.y
-    if (this.position.y >= floor - 10) {
+  jump() {
+    if (this.position.y >= this.getFloor() - 5) {
       this.velocity.y = -1 * this.hops
+      this.spriteState = SpriteState.JUMP
+    }
+  }
+
+  landOnFloor() {
+    if (this.keyStack.at(-1) === this.keys.right) {
+      this.walk(1)
+    } else if (this.keyStack.at(-1) === this.keys.left) {
+      this.walk(-1)
+    } else {
+      this.spriteState = SpriteState.IDLE
     }
   }
 
   getAttackRect(): Rect {
     return makeRect(
       this.position.x +
-        (this.facing === 'right' ? this.size.x : -this.size.x * 0.5),
-      this.position.y + this.size.y * 0.2,
-      this.size.x * 0.5,
-      this.size.y * 0.2
+        (this.facing === 'right' ? this.size.width : -this.size.width * 0.5),
+      this.position.y + this.size.height * 0.2,
+      this.size.width * 0.5,
+      this.size.height * 0.2
     )
   }
 
@@ -166,8 +143,8 @@ export class Player extends Sprite {
       const playerRect = {
         x1: player.position.x,
         y1: player.position.y,
-        x2: player.position.x + player.size.x,
-        y2: player.position.y + player.size.y
+        x2: player.position.x + player.size.width,
+        y2: player.position.y + player.size.height
       }
       if (rectsIntersect(attackRect, playerRect)) {
         player.velocity.x = player.position.x > this.position.x ? 10 : -10
@@ -184,16 +161,20 @@ export class Player extends Sprite {
     this.dead = true
     this.ignoreBoundaries.floor = true
     this.velocity.y = -1 * this.hops
+    this.spriteState = SpriteState.HIT
+    this.keysPressed = {}
+    this.keyStack = []
   }
 
   /**
    * @param {string} key
    * @param {CanvasRenderingContext2D} ctx
    */
-  handleKeydown(key: string, ctx: CanvasRenderingContext2D) {
+  handleKeydown(key: string) {
     if (this.dead) {
       return
     }
+
     if (key === this.keys.right) {
       this.facing = 'right'
       this.walk()
@@ -201,12 +182,19 @@ export class Player extends Sprite {
       this.facing = 'left'
       this.walk(-1)
     } else if (key === this.keys.jump) {
-      this.jump(ctx)
+      this.jump()
+      return
     } else if (key === this.keys.duck) {
-      this.size.y /= 2
-      this.position.y += this.size.y
+      this.size.height /= 2
+      this.position.y += this.size.height
     } else if (key === this.keys.attack) {
       this.attack()
+      return
+    }
+
+    if (Object.values(this.keys).includes(key)) {
+      this.keysPressed[key] = true
+      this.keyStack.push(key)
     }
   }
 
@@ -218,13 +206,28 @@ export class Player extends Sprite {
     if (this.dead) {
       return
     }
-    if (key === this.keys.right && this.velocity.x > 0) {
-      this.velocity.x = 0
-    } else if (key === this.keys.left && this.velocity.x < 0) {
-      this.velocity.x = 0
-    } else if (key === this.keys.duck) {
-      this.position.y -= this.size.y
-      this.size.y *= 2
+    const poppingStack = key === this.keyStack.at(-1)
+
+    if (delete this.keysPressed[key]) {
+      this.keyStack = this.keyStack.filter((k) => k !== key)
+    }
+
+    if (key === this.keys.duck) {
+      this.unduck()
+      this.position.y -= this.size.height
+      this.size.height *= 2
+    }
+
+    if (poppingStack) {
+      if (this.keyStack.length > 0) {
+        this.handleKeydown(this.keyStack.pop())
+      } else if (
+        [this.keys.left, this.keys.right].includes(key) &&
+        this.spriteState === SpriteState.WALK
+      ) {
+        this.velocity.x = 0
+        this.spriteState = SpriteState.IDLE
+      }
     }
   }
 }

@@ -23,7 +23,9 @@ export class HUD {
     side: 'left' | 'right'
   ) {
     ctx.save()
-    ctx.strokeStyle = player.color
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 3
+    ctx.lineJoin = 'bevel'
     ctx.fillStyle = player.color
     const xPos =
       side === 'left' ? HUD.padding : ctx.canvas.width * 0.6 - HUD.padding

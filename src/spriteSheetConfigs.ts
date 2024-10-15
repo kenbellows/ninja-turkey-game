@@ -1,6 +1,4 @@
-import { SpriteSheet } from './sprites/SpriteSheet.js'
-
-export const LINK = new SpriteSheet({
+export const LINK = {
   characterHeight: 48,
   sheetSrc: './assets/Custom Edited - Super Smash Bros Customs - Link.png',
   states: {
@@ -11,6 +9,14 @@ export const LINK = new SpriteSheet({
         { height: 67, width: 33, x: 511, y: 24 },
         { height: 73, width: 59, x: 347, y: 102 }
       ]
+    },
+    duck: {
+      frames: [{ x: 94, y: 275 }],
+      size: { height: 46, width: 29 }
+    },
+    hit: {
+      frames: [{ x: 139, y: 34 }],
+      size: { height: 42, width: 34 }
     },
     idle: {
       frames: [{ x: 376, y: 42 }],
@@ -32,4 +38,4 @@ export const LINK = new SpriteSheet({
       size: { height: 54, width: 44 }
     }
   }
-})
+}

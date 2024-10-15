@@ -1,5 +1,7 @@
 export type Number2D = { x: number; y: number }
 export type Rect = { x1: number; y1: number; x2: number; y2: number }
+export type Size = { height: number; width: number }
+export type Box = Number2D & Size
 
 export function makeRect(
   x1: number,
@@ -50,4 +52,8 @@ export function cover(
       y: ctx.canvas.height
     }
   }
+}
+
+export function closeTo(val: number, reference: number, distance: number = 1) {
+  return val < reference + distance && val > reference - distance
 }

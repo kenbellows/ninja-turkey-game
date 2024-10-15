@@ -1,12 +1,14 @@
-import { Number2D } from '../math.js'
+import { Number2D, Size } from '../math.js'
 
-type SpriteStateConfig = {
-  size: { height: number; width: number }
-  frames: (Number2D & { height?: number; width?: number })[]
+type SpriteStateDetails = {
+  size: Size
+  frames: (Number2D & Partial<Size>)[]
 }
 
 export enum SpriteState {
   ATTACK = 'attack',
+  DUCK = 'duck',
+  HIT = 'hit',
   IDLE = 'idle',
   JUMP = 'jump',
   WALK = 'walk'
@@ -17,15 +19,14 @@ type SpriteSheetConfig = {
   fps?: number
   initialState?: SpriteState
   sheetSrc: string
-  states: Partial<Record<SpriteState, SpriteStateConfig>>
+  states: Partial<Record<SpriteState, SpriteStateDetails>>
 }
 
 export class SpriteSheet {
   public characterHeight: number
   public loaded: boolean
   public sheet: HTMLImageElement
-  public size: { height: number; width: number }
-  public states: { [state: string]: SpriteStateConfig }
+  public states: { [state: string]: SpriteStateDetails }
 
   fps: number
   currentState: SpriteState
@@ -60,7 +61,7 @@ export class SpriteSheet {
   public getFrame() {
     const state = this.states[this.currentState]
     const nextTick = this.lastFrameTick + Math.round(1000 / this.fps)
-    if (new Date().getTime() - this.lastFrameTick >= nextTick) {
+    if (new Date().getTime() >= nextTick) {
       this.currentFrame = (this.currentFrame + 1) % state.frames.length
       this.lastFrameTick = nextTick
     }
