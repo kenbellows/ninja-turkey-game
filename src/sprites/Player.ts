@@ -174,6 +174,9 @@ export class Player extends Sprite {
     if (this.dead) {
       return
     }
+    if (this.spriteSheet.states[this.spriteState].oneShot) {
+      return
+    }
 
     if (key === this.keys.right) {
       this.facing = 'right'

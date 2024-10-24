@@ -2,6 +2,7 @@ import { Number2D, Size } from '../math.js'
 
 type SpriteStateDetails = {
   size: Size
+  oneShot?: boolean
   frames: (Number2D & Partial<Size>)[]
 }
 
