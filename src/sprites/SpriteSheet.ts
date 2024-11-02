@@ -1,9 +1,18 @@
 import { Number2D, Size } from '../math.js'
 
+export type Frame = Number2D & Partial<Size>
+
+export type GetFrameResult = Required<Frame> | { oneShotComplete: true }
+export function isOneShotComplete(
+  r: GetFrameResult
+): r is { oneShotComplete: true } {
+  return 'oneShotComplete' in r && r.oneShotComplete
+}
+
 type SpriteStateDetails = {
   size: Size
   oneShot?: boolean
-  frames: (Number2D & Partial<Size>)[]
+  frames: Frame[]
 }
 
 export enum SpriteState {
@@ -15,7 +24,7 @@ export enum SpriteState {
   WALK = 'walk'
 }
 
-type SpriteSheetConfig = {
+export type SpriteSheetConfig = {
   characterHeight: number
   fps?: number
   initialState?: SpriteState
@@ -59,13 +68,19 @@ export class SpriteSheet {
     this.lastFrameTick = new Date().getTime()
   }
 
-  public getFrame() {
+  public getFrame(): (Size & Frame) | { oneShotComplete: true } {
     const state = this.states[this.currentState]
     const nextTick = this.lastFrameTick + Math.round(1000 / this.fps)
     if (new Date().getTime() >= nextTick) {
       this.currentFrame = (this.currentFrame + 1) % state.frames.length
       this.lastFrameTick = nextTick
+      if (state.oneShot && this.currentFrame === 0) {
+        return { oneShotComplete: true }
+      }
     }
-    return { ...state.size, ...state.frames[this.currentFrame] }
+    return {
+      ...state.size,
+      ...state.frames[this.currentFrame]
+    }
   }
 }

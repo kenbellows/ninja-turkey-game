@@ -29,7 +29,6 @@ export class Player extends Sprite {
   public dead: boolean = false
 
   private ducking: boolean = false
-  private attackingCountdown: number
   private hitCountdown: number
   private keysPressed: { [key: string]: boolean } = {}
   private keyStack: string[] = []
@@ -52,13 +51,21 @@ export class Player extends Sprite {
 
     this.health = 100
 
-    this.attackingCountdown = 0
     this.hitCountdown = 0
+  }
+
+  set spriteState(state: SpriteState) {
+    console.log(this.name, 'moving to', state)
+    super.spriteState = state
+  }
+
+  get spriteState() {
+    return super.spriteState
   }
 
   update(ctx: CanvasRenderingContext2D) {
     super.update(ctx)
-    const floor = this.getFloor()
+    const floor = ctx.canvas.height - this.getFloor()
     if (
       this.spriteState === SpriteState.JUMP &&
       closeTo(this.position.y, floor) &&
@@ -70,19 +77,27 @@ export class Player extends Sprite {
         this.spriteState = SpriteState.IDLE
       }
     }
-    if (this.attackingCountdown > 0) {
-      this.attackingCountdown -= 1
-      if (this.attackingCountdown === 0) {
-        this.spriteState =
-          this.position.y > floor
-            ? SpriteState.JUMP
-            : this.velocity.x != 0
-            ? SpriteState.WALK
-            : SpriteState.IDLE
-      }
-    }
     if (this.hitCountdown > 0) {
       this.hitCountdown -= 1
+    } else if (
+      this.spriteState === SpriteState.HIT &&
+      this.hitCountdown === 0
+    ) {
+      this.revertState()
+    }
+  }
+
+  revertState() {
+    if (this.position.y < this.ctx.canvas.height - this.getFloor() - 5) {
+      this.spriteState = SpriteState.JUMP
+    } else if (this.keysPressed[this.keys.right]) {
+      this.facing = 'right'
+      this.walk(1)
+    } else if (this.keysPressed[this.keys.left]) {
+      this.facing = 'left'
+      this.walk(-1)
+    } else {
+      this.spriteState = SpriteState.IDLE
     }
   }
 
@@ -94,7 +109,7 @@ export class Player extends Sprite {
 
   unduck() {
     this.ducking = false
-    this.spriteState = SpriteState.DUCK
+    this.revertState()
   }
 
   walk(sign: 1 | -1 = 1) {
@@ -105,7 +120,7 @@ export class Player extends Sprite {
   }
 
   jump() {
-    if (this.position.y >= this.getFloor() - 5) {
+    if (this.position.y >= this.ctx.canvas.height - this.getFloor() - 5) {
       this.velocity.y = -1 * this.hops
       this.spriteState = SpriteState.JUMP
     }
@@ -113,8 +128,10 @@ export class Player extends Sprite {
 
   landOnFloor() {
     if (this.keyStack.at(-1) === this.keys.right) {
+      this.facing = 'right'
       this.walk(1)
     } else if (this.keyStack.at(-1) === this.keys.left) {
+      this.facing = 'left'
       this.walk(-1)
     } else {
       this.spriteState = SpriteState.IDLE
@@ -132,7 +149,7 @@ export class Player extends Sprite {
   }
 
   attack() {
-    this.attackingCountdown = 10
+    this.spriteState = SpriteState.ATTACK
 
     const attackRect: Rect = this.getAttackRect()
 
@@ -142,7 +159,7 @@ export class Player extends Sprite {
       }
       const playerRect = {
         x1: player.position.x,
-        y1: player.position.y,
+        y1: player.position.y + (player.ducking ? player.size.height * 0.4 : 0),
         x2: player.position.x + player.size.width,
         y2: player.position.y + player.size.height
       }
@@ -174,25 +191,24 @@ export class Player extends Sprite {
     if (this.dead) {
       return
     }
-    if (this.spriteSheet.states[this.spriteState].oneShot) {
-      return
-    }
 
-    if (key === this.keys.right) {
-      this.facing = 'right'
-      this.walk()
-    } else if (key === this.keys.left) {
-      this.facing = 'left'
-      this.walk(-1)
-    } else if (key === this.keys.jump) {
-      this.jump()
-      return
-    } else if (key === this.keys.duck) {
-      this.size.height /= 2
-      this.position.y += this.size.height
-    } else if (key === this.keys.attack) {
-      this.attack()
-      return
+    if (!(this.spriteSheet.states[this.spriteState].oneShot || this.ducking)) {
+      if (key === this.keys.right) {
+        this.facing = 'right'
+        this.walk(1)
+      } else if (key === this.keys.left) {
+        this.facing = 'left'
+        this.walk(-1)
+      } else if (key === this.keys.jump) {
+        this.jump()
+      } else if (key === this.keys.attack) {
+        this.attack()
+      } else if (
+        key === this.keys.duck &&
+        closeTo(this.position.y, this.ctx.canvas.height - this.getFloor())
+      ) {
+        this.duck()
+      }
     }
 
     if (Object.values(this.keys).includes(key)) {
@@ -217,8 +233,6 @@ export class Player extends Sprite {
 
     if (key === this.keys.duck) {
       this.unduck()
-      this.position.y -= this.size.height
-      this.size.height *= 2
     }
 
     if (poppingStack) {

@@ -1,8 +1,11 @@
-export const LINK = {
+import { SpriteSheetConfig } from './sprites/SpriteSheet.js'
+
+export const LINK: SpriteSheetConfig = {
   characterHeight: 48,
   sheetSrc: './assets/Custom Edited - Super Smash Bros Customs - Link.png',
   states: {
     attack: {
+      oneShot: true,
       size: { height: 47, width: 40 },
       frames: [
         { height: 59, width: 40, x: 467, y: 32 },

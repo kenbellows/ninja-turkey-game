@@ -1,6 +1,11 @@
 import { drawRect } from '../draw.js'
 import { Number2D, Size } from '../math.js'
-import { SpriteSheet, SpriteState } from './SpriteSheet.js'
+import {
+  Frame,
+  isOneShotComplete,
+  SpriteSheet,
+  SpriteState
+} from './SpriteSheet.js'
 
 export type SpriteConfig = {
   ctx: CanvasRenderingContext2D
@@ -75,7 +80,13 @@ export class Sprite {
   }
 
   drawSprite(ctx: CanvasRenderingContext2D) {
-    const frame = this.spriteSheet.getFrame()
+    const frame: (Size & Frame) | { oneShotComplete: true } =
+      this.spriteSheet.getFrame()
+    if (isOneShotComplete(frame)) {
+      this.revertState()
+      return this.drawSprite(ctx)
+    }
+
     const frameAspectRatio = frame.width / frame.height
 
     const yPos =
@@ -144,6 +155,10 @@ export class Sprite {
         this.landOnFloor()
       }
     }
+  }
+
+  revertState() {
+    this.spriteState = SpriteState.IDLE
   }
 
   landOnFloor() {
