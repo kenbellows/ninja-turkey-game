@@ -25,7 +25,7 @@ export enum SpriteState {
 }
 
 export type SpriteSheetConfig = {
-  characterHeight: number
+  characterSize: Size
   fps?: number
   initialState?: SpriteState
   sheetSrc: string
@@ -33,7 +33,7 @@ export type SpriteSheetConfig = {
 }
 
 export class SpriteSheet {
-  public characterHeight: number
+  public characterSize: Size
   public loaded: boolean
   public sheet: HTMLImageElement
   public states: { [state: string]: SpriteStateDetails }
@@ -44,13 +44,13 @@ export class SpriteSheet {
   lastFrameTick: number
 
   constructor({
-    characterHeight,
+    characterSize,
     fps = 10,
     sheetSrc,
     states,
     initialState = SpriteState.IDLE
   }: SpriteSheetConfig) {
-    this.characterHeight = characterHeight
+    this.characterSize = characterSize
     this.fps = fps
     this.states = states
 
@@ -70,10 +70,12 @@ export class SpriteSheet {
 
   public getFrame(): (Size & Frame) | { oneShotComplete: true } {
     const state = this.states[this.currentState]
-    const nextTick = this.lastFrameTick + Math.round(1000 / this.fps)
-    if (new Date().getTime() >= nextTick) {
+    const now = new Date().getTime()
+    const step = Math.round(1000 / this.fps)
+    const nextTick = this.lastFrameTick + step
+    if (now >= nextTick) {
       this.currentFrame = (this.currentFrame + 1) % state.frames.length
-      this.lastFrameTick = nextTick
+      this.lastFrameTick = now > nextTick + step ? now : nextTick
       if (state.oneShot && this.currentFrame === 0) {
         return { oneShotComplete: true }
       }

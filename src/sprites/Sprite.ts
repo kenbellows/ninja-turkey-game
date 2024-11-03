@@ -87,13 +87,17 @@ export class Sprite {
       return this.drawSprite(ctx)
     }
 
-    const frameAspectRatio = frame.width / frame.height
+    const { height } = this.size
+    const { characterSize } = this.spriteSheet
 
-    const yPos =
-      this.position.y - (frame.height - this.spriteSheet.characterHeight)
+    const canvasRatio = height / characterSize.height
+
+    const yDiff = (frame.height - characterSize.height) * canvasRatio
+    const yPos = this.position.y - yDiff
+    const width = frame.width * canvasRatio
     ctx.save()
     if (this.facing === 'left') {
-      ctx.translate(this.position.x + this.size.width, yPos)
+      ctx.translate(this.position.x + characterSize.width, yPos)
       ctx.scale(-1, 1)
     } else {
       ctx.translate(this.position.x, yPos)
@@ -106,8 +110,8 @@ export class Sprite {
       frame.height,
       0,
       0,
-      this.size.height * frameAspectRatio,
-      this.size.height
+      width,
+      height + yDiff
     )
     ctx.restore()
   }

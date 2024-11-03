@@ -1,7 +1,7 @@
 import { SpriteSheetConfig } from './sprites/SpriteSheet.js'
 
 export const LINK: SpriteSheetConfig = {
-  characterHeight: 48,
+  characterSize: { height: 48, width: 27 },
   sheetSrc: './assets/Custom Edited - Super Smash Bros Customs - Link.png',
   states: {
     attack: {

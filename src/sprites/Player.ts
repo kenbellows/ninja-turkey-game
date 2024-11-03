@@ -54,15 +54,6 @@ export class Player extends Sprite {
     this.hitCountdown = 0
   }
 
-  set spriteState(state: SpriteState) {
-    console.log(this.name, 'moving to', state)
-    super.spriteState = state
-  }
-
-  get spriteState() {
-    return super.spriteState
-  }
-
   update(ctx: CanvasRenderingContext2D) {
     super.update(ctx)
     const floor = ctx.canvas.height - this.getFloor()
@@ -141,10 +132,10 @@ export class Player extends Sprite {
   getAttackRect(): Rect {
     return makeRect(
       this.position.x +
-        (this.facing === 'right' ? this.size.width : -this.size.width * 0.5),
+        (this.facing === 'right' ? this.size.width : -this.size.width),
       this.position.y + this.size.height * 0.2,
-      this.size.width * 0.5,
-      this.size.height * 0.2
+      this.size.width,
+      this.size.height * 0.5
     )
   }
 
@@ -157,11 +148,25 @@ export class Player extends Sprite {
       if (player === this) {
         continue
       }
+
+      let hitBoxHeight: number = player.size.height
+      if (player.ducking) {
+        if (
+          player.spriteSheet.states[SpriteState.DUCK] &&
+          player.spriteSheet.states[SpriteState.IDLE]
+        ) {
+          hitBoxHeight *=
+            player.spriteSheet.states[SpriteState.DUCK].size.height /
+            player.spriteSheet.states[SpriteState.IDLE].size.height
+        } else {
+          hitBoxHeight *= 0.6
+        }
+      }
       const playerRect = {
         x1: player.position.x,
-        y1: player.position.y + (player.ducking ? player.size.height * 0.4 : 0),
+        y1: player.position.y + player.size.height - hitBoxHeight,
         x2: player.position.x + player.size.width,
-        y2: player.position.y + player.size.height
+        y2: player.position.y + hitBoxHeight
       }
       if (rectsIntersect(attackRect, playerRect)) {
         player.velocity.x = player.position.x > this.position.x ? 10 : -10
