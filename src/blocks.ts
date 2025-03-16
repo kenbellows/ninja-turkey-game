@@ -1,10 +1,8 @@
 import { HUD } from './HUD.js'
 import { Scene } from './Scene.js'
+import { Block } from './sprites/Block.js'
 import { Bomb } from './sprites/Bomb.js'
-import { Player } from './sprites/Player.js'
-import { SpriteSheet } from './sprites/SpriteSheet.js'
 import { Thing } from './sprites/Thing.js'
-import { BLUE_LINK, RED_LINK } from './spriteSheetConfigs.js'
 
 const canvas = document.querySelector('canvas')
 if (!canvas) {
@@ -27,7 +25,7 @@ const floorPadding = 20
 
 const players = []
 
-const player1 = new Player({
+const player1 = new Block({
   bounceFactor: 0,
   color: 'blue',
   ctx,
@@ -49,14 +47,13 @@ const player1 = new Player({
   size: {
     ...PLAYER_SIZE
   },
-  spriteSheet: new SpriteSheet(BLUE_LINK),
   velocity: {
     x: 0,
     y: 0
   }
 })
 
-const player2 = new Player({
+const player2 = new Block({
   bounceFactor: 0,
   color: 'red',
   ctx,
@@ -78,7 +75,6 @@ const player2 = new Player({
   size: {
     ...PLAYER_SIZE
   },
-  spriteSheet: new SpriteSheet(RED_LINK),
   velocity: {
     x: 0,
     y: 0
@@ -87,18 +83,16 @@ const player2 = new Player({
 
 players.push(player1, player2)
 
-const sprites: Thing[] = [player1, player2]
+const things: Thing[] = [player1, player2]
 const hud = new HUD({ players })
-const scene = new Scene({
-  backgroundImg: './assets/pixel-art-illustration-supermarket-background.png'
-})
+const scene = new Scene({})
 function animate() {
   window.requestAnimationFrame(animate)
   scene.draw(ctx)
   if (!scene.loaded) {
     return
   }
-  for (const sprite of sprites) {
+  for (const sprite of things) {
     sprite.update(ctx)
   }
   hud.draw(ctx)
@@ -122,11 +116,11 @@ window.addEventListener('keyup', (e) => {
 
 function handlePlatformKeydown(key: string, ctx: CanvasRenderingContext2D) {
   if (key === 'b') {
-    sprites.push(
+    things.push(
       new Bomb({
         ctx,
         power: 1000,
-        things: [...sprites],
+        things: [...things],
         color: 'silver',
         size: {
           height: 25,

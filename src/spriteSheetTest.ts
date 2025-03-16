@@ -1,6 +1,6 @@
 import { Sprite } from './sprites/Sprite.js'
 import { SpriteSheet, SpriteState } from './sprites/SpriteSheet.js'
-import { LINK } from './spriteSheetConfigs.js'
+import { GREEN_LINK } from './spriteSheetConfigs.js'
 
 const canvas = document.querySelector('canvas')
 if (!canvas) {
@@ -21,8 +21,8 @@ const PLAYER_SIZE = {
 
 const floorPadding = 20
 
-const myLink = structuredClone(LINK)
-myLink.states.attack.oneShot = false
+const myLink = structuredClone(GREEN_LINK)
+delete myLink.states.attack.oneShot
 myLink.fps = 1
 myLink.initialState = SpriteState.ATTACK
 

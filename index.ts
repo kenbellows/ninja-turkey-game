@@ -2,8 +2,8 @@ import { HUD } from './HUD.js'
 import { Scene } from './Scene.js'
 import { Bomb } from './sprites/Bomb.js'
 import { Player } from './sprites/Player.js'
+import { Sprite } from './sprites/Sprite.js'
 import { SpriteSheet } from './sprites/SpriteSheet.js'
-import { Thing } from './sprites/Thing.js'
 import { BLUE_LINK, RED_LINK } from './spriteSheetConfigs.js'
 
 const canvas = document.querySelector('canvas')
@@ -87,7 +87,7 @@ const player2 = new Player({
 
 players.push(player1, player2)
 
-const sprites: Thing[] = [player1, player2]
+const sprites: Sprite[] = [player1, player2]
 const hud = new HUD({ players })
 const scene = new Scene({
   backgroundImg: './assets/pixel-art-illustration-supermarket-background.png'
@@ -126,7 +126,7 @@ function handlePlatformKeydown(key: string, ctx: CanvasRenderingContext2D) {
       new Bomb({
         ctx,
         power: 1000,
-        things: [...sprites],
+        sprites: [...sprites],
         color: 'silver',
         size: {
           height: 25,

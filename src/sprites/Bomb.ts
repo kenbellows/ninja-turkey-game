@@ -1,16 +1,16 @@
 import { drawCircle } from '../draw.js'
-import { Sprite, SpriteConfig } from './Sprite.js'
+import { Thing, ThingConfig } from './Thing.js'
 
-type BombConfig = SpriteConfig & { power: number; sprites: Sprite[] }
+type BombConfig = ThingConfig & { power: number; things: Thing[] }
 
-export class Bomb extends Sprite {
+export class Bomb extends Thing {
   public exploded: boolean
   public sprites: any
   public power: any
   /**
    * @param {BombConfig} opts
    */
-  constructor({ power, sprites, ...spriteConfig }: BombConfig) {
+  constructor({ power, things: sprites, ...spriteConfig }: BombConfig) {
     super({ ...spriteConfig })
 
     this.exploded = false

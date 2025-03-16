@@ -11,7 +11,8 @@ export function isOneShotComplete(
 
 type SpriteStateDetails = {
   size: Size
-  oneShot?: boolean
+  oneShot?: number
+  oneShotCounter?: number
   frames: Frame[]
 }
 
@@ -65,6 +66,9 @@ export class SpriteSheet {
   setState(state: SpriteState) {
     this.currentState = state
     this.currentFrame = 0
+    if (this.states[state].oneShot) {
+      this.states[state].oneShotCounter = this.states[state].oneShot
+    }
     this.lastFrameTick = new Date().getTime()
   }
 
@@ -77,7 +81,10 @@ export class SpriteSheet {
       this.currentFrame = (this.currentFrame + 1) % state.frames.length
       this.lastFrameTick = now > nextTick + step ? now : nextTick
       if (state.oneShot && this.currentFrame === 0) {
-        return { oneShotComplete: true }
+        state.oneShotCounter -= 1
+        if (state.oneShotCounter === 0) {
+          return { oneShotComplete: true }
+        }
       }
     }
     return {

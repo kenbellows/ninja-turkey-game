@@ -1,11 +1,10 @@
 import { SpriteSheetConfig } from './sprites/SpriteSheet.js'
 
-export const LINK: SpriteSheetConfig = {
+const LINK: Omit<SpriteSheetConfig, 'sheetSrc'> = {
   characterSize: { height: 48, width: 27 },
-  sheetSrc: './assets/Custom Edited - Super Smash Bros Customs - Link.png',
   states: {
     attack: {
-      oneShot: true,
+      oneShot: 1,
       size: { height: 47, width: 40 },
       frames: [
         { height: 59, width: 40, x: 467, y: 32 },
@@ -18,6 +17,7 @@ export const LINK: SpriteSheetConfig = {
       size: { height: 46, width: 29 }
     },
     hit: {
+      oneShot: 10,
       frames: [{ x: 139, y: 34 }],
       size: { height: 42, width: 34 }
     },
@@ -41,4 +41,19 @@ export const LINK: SpriteSheetConfig = {
       size: { height: 54, width: 44 }
     }
   }
+}
+
+export const GREEN_LINK: SpriteSheetConfig = {
+  ...structuredClone(LINK),
+  sheetSrc: './assets/Custom Edited - Super Smash Bros Customs - Link.png'
+}
+
+export const RED_LINK: SpriteSheetConfig = {
+  ...structuredClone(LINK),
+  sheetSrc: './assets/red-link.png'
+}
+
+export const BLUE_LINK: SpriteSheetConfig = {
+  ...structuredClone(LINK),
+  sheetSrc: './assets/blue-link.png'
 }
